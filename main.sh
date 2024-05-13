@@ -243,6 +243,7 @@ wget https://download.jetbrains.com/toolbox/jetbrains-toolbox-2.3.1.31116.tar.gz
 sudo tar -xzf jetbrains-toolbox-2.3.1.31116.tar.gz /opt
 sudo mv /opt/jetbrains-toolbox-2.3.1.31116 /opt/jetbrains-toolbox
 sudo ln -sf /opt/jetbrains/jetbrains-toolbox /usr/local/bin/jetbrains
+sudo rm jetbrains-toolbox-2.3.1.31116.tar.gz
 
 ######################
 #  Chrome & firefox  #
@@ -252,6 +253,7 @@ echo "Installing Chrome and Firefox..."
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 sudo apt-get install -f
+sudo rm google-chrome-stable_current_amd64.deb
 
 CHROMEVERSION=$(google-chrome --version)
 CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip"
