@@ -277,4 +277,4 @@ echo 'DPkg::Post-Invoke {"/usr/local/bin/updateChromeDriver.sh";};' | sudo tee /
 echo "Installing Platform.sh CLI"
 curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
 
-sudo apt-get update -y && apt-get upgrade -y
+sudo apt-get update -y && sudo apt-get upgrade -y
