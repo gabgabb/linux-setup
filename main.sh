@@ -3,12 +3,19 @@
 USERNAME=$(whoami)
 USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
 
-# Safeguarding by confirming user intentions before proceeding.
-read -p "This script will modify system settings and install multiple packages. Continue? (y/n) " confirmation
+echo "Running script..."
+read -p "This script will modify system settings and install multiple packages. Continue? (y/n) [y]: " confirmation
+
+# Set default value if no answer is provided
+confirmation=${confirmation:-y}
+
+# Check the user's response
 if [[ "$confirmation" != "y" ]]; then
     echo "Aborting installation."
     exit 1
 fi
+
+echo "Installation continuing..."
 
 echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" | sudo EDITOR='tee -a' visudo -f /tmp/$USERNAME
 if ! sudo visudo -c -f /tmp/$USERNAME; then
@@ -18,7 +25,7 @@ fi
 
 sudo mv /tmp/$USERNAME /etc/sudoers.d/$USERNAME
 
-sudo apt-get update -y && apt-get upgrade -y
+sudo apt-get update -y && sudo apt-get upgrade -y
 
 #################
 #  Basic tools  #
@@ -27,10 +34,10 @@ sudo apt-get update -y && apt-get upgrade -y
 echo "Installing basic tools..."
 sudo apt-get install -y git curl wget vim zsh tmux htop tree nmap net-tools zip openssh-server \
                         libmcrypt-dev libicu-dev libxml2-dev libxslt1-dev libnss3-tools snapd \
-                        libfreetype6-dev libjpeg62-turbo-dev libxrender1 libfontconfig1 libfuse2 \
+                        libfreetype6-dev libxrender1 libfontconfig1 libfuse2 \
                         libx11-dev libxtst6 libpng-dev zlib1g-dev libjpeg-dev libonig-dev libwebp-dev \
                         libqt5svg5 jpegoptim optipng webp gnupg2 libpq-dev libzip-dev unzip sudo make \
-                        xz-utils tk-dev libffi-dev liblzma-dev python-openssl libncurses5-dev libncursesw5-dev
+                        xz-utils tk-dev libffi-dev liblzma-dev libncurses5-dev libncursesw5-dev
 
 sudo systemctl disable apache2
 
@@ -43,20 +50,32 @@ echo "Select a PHP version to install:"
 echo "1) PHP 7.4"
 echo "2) PHP 8.0"
 echo "3) PHP 8.1"
-echo -n "Enter your choice (1-3): "
+echo "4) PHP 8.2"
+echo -n "Enter your choice (1-4): "
 read choice
 
 case $choice in
     1) PHP_VERSION="php7.4" ;;
     2) PHP_VERSION="php8.0" ;;
     3) PHP_VERSION="php8.1" ;;
+    4) 
+        PHP_VERSION="php8.2"
+        echo "Adding PHP 8.2 PPA..."
+        sudo add-apt-repository ppa:ondrej/php -y  # Automatically confirm addition
+        sudo apt-get update
+        ;;
     *) echo "Invalid choice, exiting."; exit 1 ;;
 esac
 
 sudo apt-get install -y $PHP_VERSION $PHP_VERSION-cli $PHP_VERSION-fpm $PHP_VERSION-pgsql $PHP_VERSION-xml \
                         $PHP_VERSION-mbstring $PHP_VERSION-curl $PHP_VERSION-zip $PHP_VERSION-intl \
                         $PHP_VERSION-gd $PHP_VERSION-imagick $PHP_VERSION-xdebug $PHP_VERSION-ldap \
-                        $PHP_VERSION-xsl $PHP_VERSION-unzip
+                        $PHP_VERSION-xsl
+
+if [[ $(update-alternatives --list php | wc -l) -gt 1 ]]; then
+    echo "Multiple PHP versions installed. Configuring default version..."
+    sudo update-alternatives --config php
+fi
 
 curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
 
@@ -67,17 +86,39 @@ composer --version
 #######################
 
 echo "Installing Node.js, npm and yarn..."
-curl -sL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get install -y yarn \
-    && npm install -g npm
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+echo "Installing node..."
+echo "Select a node version to install:"
+echo "1) Node 20"
+echo "2) Node 18"
+echo "3) Node 17"
+echo "4) Node 16"
+echo -n "Enter your choice (1-4): "
+read node_choice
+
+case $node_choice in
+    1) 
+        nvm install 20
+        nvm use 20 
+        ;;
+    2)  
+        nvm install 18
+        nvm use 18 
+        ;;
+    3) 
+        nvm install 17
+        nvm use 17 
+        ;;
+    4) 
+        nvm install 16
+        nvm use 16 
+        ;;
+    *) echo "Invalid choice, exiting."; exit 1 ;;
+esac
 
 echo "Installing npx..."
 npm install -g npx
@@ -144,6 +185,9 @@ sudo apt install symfony-cli
 #  oh-my-zsh  #
 ###############
 
+echo "Installing brew..."
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 echo "Installing oh-my-zsh..."
 echo "Avant de procéder à l'installation de Powerlevel10k, veuillez télécharger et installer les polices suivantes pour assurer un affichage correct du thème :"
 echo "1. MesloLGS NF Regular: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf"
@@ -156,10 +200,32 @@ echo "Veuillez ouvrir ces liens dans un navigateur web et télécharger chaque f
 read -p "Appuyez sur [Enter] une fois les polices installées pour continuer avec l'installation de Powerlevel10k."
 
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
+if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
+    echo "Cloning Powerlevel10k..."
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+else
+    echo "Powerlevel10k already cloned."
+fi
+
+# Check and clone zsh-autosuggestions plugin
+if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
+    echo "Cloning zsh-autosuggestions..."
+    git clone https://github.com/zsh-users/zsh-autosuggestions $ZSH_CUSTOM/plugins/zsh-autosuggestions
+else
+    echo "zsh-autosuggestions already cloned."
+fi
+
+# Check and clone zsh-syntax-highlighting plugin
+if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
+    echo "Cloning zsh-syntax-highlighting..."
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $ZSH_CUSTOM/plugins/zsh-syntax-highlighting
+else
+    echo "zsh-syntax-highlighting already cloned."
+fi
+
+echo "Creating backup for .zshrc..."
+sudo cp $USER_HOME/.zshrc $USER_HOME/.zshrc.backup
 sudo cp -f ./.zshrc $USER_HOME/.zshrc
 
 zsh
@@ -210,12 +276,3 @@ echo "Installing Platform.sh CLI"
 curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
 
 sudo apt-get update -y && apt-get upgrade -y
-
-
-
-
-
-
-
-
-

@@ -27,5 +27,5 @@ Clone this repository and run
 
 ``` bash
 cd setup-linux
-sh main.sh
+./main.sh
 ```
