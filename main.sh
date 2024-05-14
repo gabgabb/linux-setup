@@ -51,7 +51,8 @@ echo "1) PHP 7.4"
 echo "2) PHP 8.0"
 echo "3) PHP 8.1"
 echo "4) PHP 8.2"
-echo -n "Enter your choice (1-4): "
+echo "5) PHP 8.3"
+echo -n "Enter your choice (1-5): "
 read choice
 
 case $choice in
@@ -61,6 +62,12 @@ case $choice in
     4) 
         PHP_VERSION="php8.2"
         echo "Adding PHP 8.2 PPA..."
+        sudo add-apt-repository ppa:ondrej/php -y  # Automatically confirm addition
+        sudo apt-get update
+        ;;
+    5)
+        PHP_VERSION="php8.3"
+        echo "Adding PHP 8.3 PPA..."
         sudo add-apt-repository ppa:ondrej/php -y  # Automatically confirm addition
         sudo apt-get update
         ;;
