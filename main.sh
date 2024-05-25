@@ -292,7 +292,7 @@ if [[ "$checkpoint" -le 9 ]]; then
         # Clone zsh-autosuggestions plugin
         if [ ! -d "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
             echo "Cloning zsh-autosuggestions..."
-            git clone https://github.com/zsh-users/zsh-autosuggestions $USER_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+            git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
         else
             echo "zsh-autosuggestions already cloned."
         fi
@@ -300,7 +300,7 @@ if [[ "$checkpoint" -le 9 ]]; then
         # Clone zsh-syntax-highlighting plugin
         if [ ! -d "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
             echo "Cloning zsh-syntax-highlighting..."
-            git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $USER_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+            git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
         else
             echo "zsh-syntax-highlighting already cloned."
         fi
@@ -324,14 +324,33 @@ if [[ "$checkpoint" -le 10 ]]; then
         sudo chmod -R 777 $USER_HOME/dev
     fi
 
-    if [ ! -d "/opt/jetbrains-toolbox" ]; then
-        wget https://download.jetbrains.com/toolbox/jetbrains-toolbox-2.3.1.31116.tar.gz
-        sudo tar -xzf jetbrains-toolbox-2.3.1.31116.tar.gz -C /opt
-        sudo mv /opt/jetbrains-toolbox-2.3.1.31116 /opt/jetbrains-toolbox
-        sudo ln -sf /opt/jetbrains-toolbox/jetbrains-toolbox /usr/local/bin/jetbrains
-        sudo rm jetbrains-toolbox-2.3.1.31116.tar.gz
-    fi
-    save_checkpoint 10
+    if [ ! -d "$USER_HOME/.local/share/JetBrains/Toolbox" ]; then
+            echo "Creating JetBrains Toolbox directories..."
+            sudo mkdir -p /home/$USERNAME/.local/share/JetBrains
+            sudo mkdir -p /home/$USERNAME/.local/share/JetBrains/Toolbox
+            sudo mkdir -p /home/$USERNAME/.local/share/JetBrains/Toolbox/apps
+            sudo mkdir -p /home/$USERNAME/.local/share/JetBrains/Toolbox/scripts
+            sudo chown -R $USERNAME /home/$USERNAME/.local/share/JetBrains/Toolbox
+            sudo chmod -R 755 /home/$USERNAME/.local/share/JetBrains/
+        fi
+
+        # Download and install JetBrains Toolbox if not already present
+        if [ ! -d "/opt/jetbrains-toolbox" ]; then
+            wget https://download.jetbrains.com/toolbox/jetbrains-toolbox-2.3.1.31116.tar.gz
+            sudo tar -xzf jetbrains-toolbox-2.3.1.31116.tar.gz -C /opt
+            sudo mv /opt/jetbrains-toolbox-2.3.1.31116 /opt/jetbrains-toolbox
+            sudo ln -sf /opt/jetbrains-toolbox/jetbrains-toolbox /usr/local/bin/jetbrains
+            sudo rm jetbrains-toolbox-2.3.1.31116.tar.gz
+        fi
+
+        # Ensure the Google directory exists and has correct permissions
+        if [ ! -d "/home/$USERNAME/.local/share/Google" ]; then
+            sudo mkdir -p /home/$USERNAME/.local/share/Google
+            sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/.local/share/Google
+            sudo chmod -R 755 /home/$USERNAME/.local/share/Google
+        fi
+
+        save_checkpoint 10
 fi
 
 ######################
@@ -383,6 +402,7 @@ fi
 # Cleanup checkpoint file after successful execution
 rm -f "$CHECKPOINT_FILE"
 
+sudo apt update -y && sudo apt upgrade -y
 sudo apt autoremove -y
 
 zsh
