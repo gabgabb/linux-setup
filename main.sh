@@ -261,12 +261,22 @@ if [[ "$checkpoint" -le 8 ]]; then
 fi
 
 ###############
-#  oh-my-zsh  #
+#    Brew     #
 ###############
 if [[ "$checkpoint" -le 9 ]]; then
-    if [ ! -d "$USER_HOME/.oh-my-zsh" ]; then
+    if ! command -v brew &> /dev/null; then
         echo "Installing brew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        save_checkpoint 9
+    fi
+fi
+
+
+###############
+#  oh-my-zsh  #
+###############
+if [[ "$checkpoint" -le 10 ]]; then
+    if [ ! -d "$USER_HOME/.oh-my-zsh" ]; then
 
         echo "Installing oh-my-zsh..."
         echo "Before proceeding with the installation of Powerlevel10k, please download and install the following fonts to ensure correct theme display:"
@@ -279,18 +289,18 @@ if [[ "$checkpoint" -le 9 ]]; then
 
         read -p "Press [Enter] once the fonts are installed to continue with the installation of Powerlevel10k."
 
-        ZSH="$USER_HOME/.oh-my-zsh" sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" --unattended
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
         # Clone Powerlevel10k theme
-        if [ ! -d "$USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
+        if [ ! -d "~/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
             echo "Cloning Powerlevel10k..."
-            git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $USER_HOME/.oh-my-zsh/custom/themes/powerlevel10k
+            git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
         else
             echo "Powerlevel10k already cloned."
         fi
 
         # Clone zsh-autosuggestions plugin
-        if [ ! -d "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
+        if [ ! -d "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
             echo "Cloning zsh-autosuggestions..."
             git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
         else
@@ -298,7 +308,7 @@ if [[ "$checkpoint" -le 9 ]]; then
         fi
 
         # Clone zsh-syntax-highlighting plugin
-        if [ ! -d "$USER_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
+        if [ ! -d "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
             echo "Cloning zsh-syntax-highlighting..."
             git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
         else
@@ -306,22 +316,22 @@ if [[ "$checkpoint" -le 9 ]]; then
         fi
 
         echo "Creating backup for .zshrc..."
-        sudo cp $USER_HOME/.zshrc $USER_HOME/.zshrc.backup
-        sudo cp -f ./.zshrc $USER_HOME/.zshrc
+        sudo cp ~/.zshrc ~/.zshrc.backup
+        sudo cp -f ./.zshrc ~/.zshrc
 
         echo "Oh-my-zsh installed. Please restart your terminal to apply changes."
     fi
-    save_checkpoint 9
+    save_checkpoint 10
 fi
 
 ###############
 #  Workspace  #
 ###############
-if [[ "$checkpoint" -le 10 ]]; then
-    if [ ! -d "$USER_HOME/dev" ]; then
+if [[ "$checkpoint" -le 11 ]]; then
+    if [ ! -d "~/dev" ]; then
         echo "Creating workspace directory..."
-        sudo mkdir -p $USER_HOME/dev
-        sudo chmod -R 777 $USER_HOME/dev
+        sudo mkdir -p ~/dev
+        sudo chmod -R 777 ~/dev
     fi
 
     if [ ! -d "$USER_HOME/.local/share/JetBrains/Toolbox" ]; then
@@ -331,7 +341,7 @@ if [[ "$checkpoint" -le 10 ]]; then
             sudo mkdir -p /home/$USERNAME/.local/share/JetBrains/Toolbox/apps
             sudo mkdir -p /home/$USERNAME/.local/share/JetBrains/Toolbox/scripts
             sudo chown -R $USERNAME /home/$USERNAME/.local/share/JetBrains/Toolbox
-            sudo chmod -R 755 /home/$USERNAME/.local/share/JetBrains/
+            sudo chmod -R 755 /home/$USERNAME/.local/share/JetBrains
         fi
 
         # Download and install JetBrains Toolbox if not already present
@@ -350,13 +360,13 @@ if [[ "$checkpoint" -le 10 ]]; then
             sudo chmod -R 755 /home/$USERNAME/.local/share/Google
         fi
 
-        save_checkpoint 10
+        save_checkpoint 11
 fi
 
 ######################
 #  Chrome & firefox  #
 ######################
-if [[ "$checkpoint" -le 11 ]]; then
+if [[ "$checkpoint" -le 12 ]]; then
     if ! command -v google-chrome &> /dev/null; then
         echo "Installing Chrome and Firefox..."
         wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -381,13 +391,13 @@ if [[ "$checkpoint" -le 11 ]]; then
     sudo cp -f ./updateChromeDriver.sh /usr/local/bin/updateChromeDriver.sh
     sudo chmod 777 /usr/local/bin/updateChromeDriver.sh
     echo 'DPkg::Post-Invoke {"/usr/local/bin/updateChromeDriver.sh";};' | sudo tee /etc/apt/apt.conf.d/99runscript > /dev/null
-    save_checkpoint 11
+    save_checkpoint 12
 fi
 
 #################
 #  Platform sh  #
 #################
-if [[ "$checkpoint" -le 12 ]]; then
+if [[ "$checkpoint" -le 13 ]]; then
     if ! command -v platform &> /dev/null; then
         echo "Installing Platform.sh CLI"
         curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
@@ -396,7 +406,7 @@ if [[ "$checkpoint" -le 12 ]]; then
     sudo apt-get update -y && sudo apt-get upgrade -y
 
     echo "Linux dependency installation script complete."
-    save_checkpoint 12
+    save_checkpoint 13
 fi
 
 # Cleanup checkpoint file after successful execution
