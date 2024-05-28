@@ -415,4 +415,6 @@ rm -f "$CHECKPOINT_FILE"
 sudo apt update -y && sudo apt upgrade -y
 sudo apt autoremove -y
 
+sudo chsh -s /bin/zsh
+
 zsh
