@@ -169,7 +169,7 @@ if [[ "$checkpoint" -le 5 ]]; then
     else
         echo "npx is already installed."
     fi
-
+    npm install -g yarn
     save_checkpoint 5
 fi
 
